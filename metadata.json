@@ -1,0 +1,9 @@
+{
+  "uuid": "gnome-window-particles@yoz.local",
+  "name": "Window Particle Effect",
+  "description": "Displays satisfying particle effects when windows are closed",
+  "version": 1,
+  "shell-version": ["45", "46"],
+  "url": "https://github.com/ymoop/gnome-window-particles",
+  "settings-schema": "org.gnome.shell.extensions.window-particles"
+}
