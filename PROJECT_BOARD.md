@@ -33,18 +33,27 @@
 
 ## 🚀 In Progress
 
-_(current work being done in daily maintenance runs)_
+- [ ] **Phase 2a: Multiple Effect Types** (50% done)
+  - [x] Confetti effect template created
+  - [x] Sparkles effect (default)
+  - [x] Smoke effect
+  - [x] Explosion effect
+  - [x] Rainbow effect
+  - [ ] Test effects in actual GNOME Shell
+  - [ ] Fine-tune physics parameters
+  - [ ] Add more particle characters
 
 ## ✅ Completed
 
 - [x] Initial project setup
 - [x] Metadata and extension boilerplate
 - [x] Basic window close detection
-- [x] Simple particle effect (emoji sparkles)
+- [x] Particle Engine with velocity & animation
+- [x] Effects system with 5 particle effect types
 - [x] README and documentation
 
 ---
 
 **Created:** 2026-05-17
-**Current Phase:** Phase 1 (Basic particle system)
+**Current Phase:** Phase 2a (Effect Types Implementation - 50% done)
 **Maintainer:** Yoz
