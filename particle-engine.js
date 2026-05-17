@@ -15,8 +15,9 @@ var ParticleEngine = class {
 
   /**
    * Create particles for a window close event
+   * Particles spawn from random points across the window area
    */
-  spawnEffect(x, y, effectType) {
+  spawnEffect(windowX, windowY, windowWidth, windowHeight, effectType) {
     if (!effectType) effectType = EffectType.SPARKLES;
     
     const effectConfig = Effects[effectType];
@@ -26,7 +27,10 @@ var ParticleEngine = class {
     }
 
     for (let i = 0; i < effectConfig.particleCount; i++) {
-      this._createParticle(x, y, effectConfig, i);
+      // Random spawn point across the window surface
+      const spawnX = windowX + Math.random() * windowWidth;
+      const spawnY = windowY + Math.random() * windowHeight;
+      this._createParticle(spawnX, spawnY, effectConfig, i);
     }
   }
 
@@ -75,21 +79,22 @@ var ParticleEngine = class {
 
   /**
    * Calculate velocity based on effect angle and particle index
+   * Particles burst outward from their spawn point
    */
   _calculateVelocity(config, index, totalParticles) {
     let angle, speed;
 
     if (config.angle === 'radial') {
-      // Full 360 degree burst
-      angle = (Math.PI * 2 * index) / totalParticles;
+      // Full 360 degree burst - each particle gets a unique angle
+      angle = (Math.PI * 2 * index) / totalParticles + (Math.random() - 0.5) * 0.3;
       speed = config.velocity + (Math.random() - 0.5) * config.velocityVariation;
     } else if (config.angle === 'upward') {
       // Primarily upward with spread
-      angle = (Math.PI / 2) + (Math.random() - 0.5) * (Math.PI / 4);
+      angle = (Math.PI / 2) + (Math.random() - 0.5) * (Math.PI / 3);
       speed = config.velocity + (Math.random() - 0.5) * config.velocityVariation;
     } else {
-      // Default to radial
-      angle = (Math.PI * 2 * index) / totalParticles;
+      // Default to radial with randomness
+      angle = Math.random() * Math.PI * 2;
       speed = config.velocity + (Math.random() - 0.5) * config.velocityVariation;
     }
 

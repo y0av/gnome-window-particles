@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gsettings>
+  <schema id="org.gnome.shell.extensions.window-particles" path="/org/gnome/shell/extensions/window-particles/">
+    <key type="s" name="effect-type">
+      <default>'explosion'</default>
+      <summary>Particle effect type</summary>
+      <description>Choose the particle effect to display: sparkles, confetti, smoke, explosion, or rainbow</description>
+    </key>
+    <key type="s" name="enabled-apps">
+      <default>'all'</default>
+      <summary>Enabled applications</summary>
+      <description>Comma-separated list of app names, or 'all' for all apps except browsers</description>
+    </key>
+  </schema>
+</gsettings>
