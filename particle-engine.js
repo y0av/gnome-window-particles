@@ -1,14 +1,12 @@
-const St = imports.gi.St;
-const Clutter = imports.gi.Clutter;
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
 
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Effects = Me.imports['effects'].Effects;
-const EffectType = Me.imports['effects'].EffectType;
+import { Effects, EffectType } from './effects.js';
 
 /**
  * Particle Engine - Handles particle creation and animation
  */
-var ParticleEngine = class {
+export class ParticleEngine {
   constructor() {
     this.activeParticles = [];
   }
@@ -62,11 +60,12 @@ var ParticleEngine = class {
       onComplete: () => {
         try {
           global.stage.remove_child(particle);
-        } catch (e) {}
+        } catch (e) {
+        }
         const idx = this.activeParticles.indexOf(particle);
         if (idx > -1) this.activeParticles.splice(idx, 1);
       },
-    };
+    }
 
     // Optional: Add rotation
     if (config.rotation) {

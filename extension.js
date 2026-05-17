@@ -1,102 +1,66 @@
-const { Extension } = imports.misc.extensionUtils;
-const Gio = imports.gi.Gio;
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const ParticleEngine = Me.imports['particle-engine'].ParticleEngine;
-const EffectType = Me.imports['effects'].EffectType;
+import { EffectType } from './effects.js';
+import { ParticleEngine } from './particle-engine.js';
 
-var WindowParticlesExtension = class extends Extension {
+export default class WindowParticlesExtension extends Extension {
   enable() {
     this.particleEngine = new ParticleEngine();
-    
-    // Load settings
-    this._loadSettings();
-    
-    this._windowClosedId = global.display.connect(
-      'window-closed',
-      this._onWindowClosed.bind(this)
+    this.currentEffect = EffectType.SPARKLES; // Default effect
+    this._windowSignals = new Map();
+
+    this._windowCreatedId = global.display.connect(
+      'window-created',
+      this._onWindowCreated.bind(this)
     );
+
+    for (const windowActor of global.get_window_actors())
+      this._trackWindow(windowActor.meta_window);
     
     log('[Window Particles] Extension enabled with effect: ' + this.currentEffect);
   }
 
-  _loadSettings() {
-    // Try to load from settings, fall back to default
-    try {
-      const schemaSource = Gio.SettingsSchemaSource.new_from_directory(
-        Me.path + '/schemas',
-        Gio.SettingsSchemaSource.get_default(),
-        false
-      );
-      if (schemaSource) {
-        const schema = schemaSource.lookup(
-          'org.gnome.shell.extensions.window-particles',
-          false
-        );
-        if (schema) {
-          this.settings = new Gio.Settings({
-            settings_schema: schema,
-          });
-          this.currentEffect = this.settings.get_string('effect-type');
-          this.enabledApps = this.settings.get_string('enabled-apps');
-          return;
-        }
-      }
-    } catch (e) {
-      log('[Window Particles] Settings schema not found: ' + e);
-    }
-    
-    // Fallback defaults
-    this.currentEffect = EffectType.EXPLOSION;
-    this.enabledApps = 'all'; // 'all' or comma-separated list
-  }
-
-  _isAppAllowed(window) {
-    if (this.enabledApps === 'all') return true;
-    
-    const wmClass = window.get_wm_class() || '';
-    const appName = window.get_title() || '';
-    
-    // Blocked apps (browsers, terminals with tab support)
-    const blockedApps = [
-      'firefox', 'chromium', 'chrome', 'google-chrome',
-      'brave', 'vivaldi', 'opera', 'microsoft-edge',
-      'epiphany', 'gnome-web'
-    ];
-    
-    const isBlocked = blockedApps.some(app => 
-      wmClass.toLowerCase().includes(app) || 
-      appName.toLowerCase().includes(app)
-    );
-    
-    return !isBlocked;
-  }
-
   disable() {
-    if (this._windowClosedId) {
-      global.display.disconnect(this._windowClosedId);
+    if (this._windowCreatedId) {
+      global.display.disconnect(this._windowCreatedId);
+      this._windowCreatedId = null;
     }
+
+    for (const [window, signalId] of this._windowSignals) {
+      if (window && signalId)
+        window.disconnect(signalId);
+    }
+    this._windowSignals.clear();
     
     if (this.particleEngine) {
       this.particleEngine.cleanup();
+      this.particleEngine = null;
     }
     
     log('[Window Particles] Extension disabled');
   }
 
-  _onWindowClosed(display, window) {
-    // Skip if app is not allowed
-    if (!this._isAppAllowed(window)) {
-      return;
-    }
-    
-    const [x, y, width, height] = window.get_frame_rect();
-    
-    // Spawn particles across the window area, not just from center
-    this.particleEngine.spawnEffect(x, y, width, height, this.currentEffect);
+  _onWindowCreated(display, window) {
+    this._trackWindow(window);
   }
-};
 
-function init() {
-  return new WindowParticlesExtension();
+  _trackWindow(window) {
+    if (!window || this._windowSignals.has(window))
+      return;
+
+    const signalId = window.connect('unmanaged', () => {
+      this._windowSignals.delete(window);
+      this._onWindowClosed(window);
+    });
+
+    this._windowSignals.set(window, signalId);
+  }
+
+  _onWindowClosed(window) {
+    const frameRect = window.get_frame_rect();
+    const centerX = frameRect.x + frameRect.width / 2;
+    const centerY = frameRect.y + frameRect.height / 2;
+
+    this.particleEngine.spawnEffect(centerX, centerY, this.currentEffect);
+  }
 }

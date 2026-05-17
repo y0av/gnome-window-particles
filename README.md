@@ -31,6 +31,10 @@ cp -r . ~/.local/share/gnome-shell/extensions/gnome-window-particles@yoz.local
 
 4. Enable the extension in GNOME Settings → Extensions
 
+### GNOME 45/46 note
+
+GNOME Shell 45+ loads extensions as ES modules. This repository now uses the required module-style imports for GNOME 45/46 as declared in `metadata.json`.
+
 ## Development
 
 ### Project Structure
