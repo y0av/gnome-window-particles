@@ -1,6 +1,6 @@
 // Particle Effects Library for GNOME Window Particles Extension
 
-export const EffectType = {
+const EffectType = {
   SPARKLES: 'sparkles',
   CONFETTI: 'confetti',
   SMOKE: 'smoke',
@@ -8,7 +8,7 @@ export const EffectType = {
   RAINBOW: 'rainbow',
 };
 
-export const Effects = {
+const Effects = {
   [EffectType.SPARKLES]: {
     name: 'Sparkles',
     particleCount: 20,
@@ -74,13 +74,13 @@ export const Effects = {
 /**
  * Get effect config by type
  */
-export function getEffect(effectType) {
+function getEffect(effectType) {
   return Effects[effectType] || Effects[EffectType.SPARKLES];
 }
 
 /**
  * Get all available effects
  */
-export function listEffects() {
+function listEffects() {
   return Object.values(Effects);
 }

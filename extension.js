@@ -1,9 +1,11 @@
-import { ParticleEngine } from './particle-engine.js';
-import { EffectType } from './effects.js';
-
 const { Extension } = imports.misc.extensionUtils;
+const GLib = imports.gi.GLib;
 
-export default class WindowParticlesExtension extends Extension {
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const ParticleEngine = Me.imports['particle-engine'].ParticleEngine;
+const { EffectType } = Me.imports['effects'];
+
+var WindowParticlesExtension = class extends Extension {
   enable() {
     this.particleEngine = new ParticleEngine();
     this.currentEffect = EffectType.SPARKLES; // Default effect
@@ -35,4 +37,8 @@ export default class WindowParticlesExtension extends Extension {
 
     this.particleEngine.spawnEffect(centerX, centerY, this.currentEffect);
   }
+};
+
+function init() {
+  return new WindowParticlesExtension();
 }

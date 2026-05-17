@@ -1,11 +1,13 @@
-import St from 'gi://St';
-import Clutter from 'gi://Clutter';
-import { Effects, EffectType } from './effects.js';
+const St = imports.gi.St;
+const Clutter = imports.gi.Clutter;
+
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const { Effects, EffectType } = Me.imports['effects'];
 
 /**
  * Particle Engine - Handles particle creation and animation
  */
-export class ParticleEngine {
+var ParticleEngine = class {
   constructor() {
     this.activeParticles = [];
   }
@@ -120,4 +122,4 @@ export class ParticleEngine {
     });
     this.activeParticles = [];
   }
-}
+};
