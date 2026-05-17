@@ -1,9 +1,8 @@
 const { Extension } = imports.misc.extensionUtils;
-const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const ParticleEngine = Me.imports['particle-engine'].ParticleEngine;
-const { EffectType } = Me.imports['effects'];
+const EffectType = Me.imports['effects'].EffectType;
 
 var WindowParticlesExtension = class extends Extension {
   enable() {
@@ -15,7 +14,7 @@ var WindowParticlesExtension = class extends Extension {
       this._onWindowClosed.bind(this)
     );
     
-    console.log('[Window Particles] Extension enabled with effect:', this.currentEffect);
+    log('[Window Particles] Extension enabled with effect: ' + this.currentEffect);
   }
 
   disable() {
@@ -27,7 +26,7 @@ var WindowParticlesExtension = class extends Extension {
       this.particleEngine.cleanup();
     }
     
-    console.log('[Window Particles] Extension disabled');
+    log('[Window Particles] Extension disabled');
   }
 
   _onWindowClosed(display, window) {

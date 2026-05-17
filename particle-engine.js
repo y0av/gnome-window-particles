@@ -2,7 +2,8 @@ const St = imports.gi.St;
 const Clutter = imports.gi.Clutter;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const { Effects, EffectType } = Me.imports['effects'];
+const Effects = Me.imports['effects'].Effects;
+const EffectType = Me.imports['effects'].EffectType;
 
 /**
  * Particle Engine - Handles particle creation and animation
@@ -15,10 +16,12 @@ var ParticleEngine = class {
   /**
    * Create particles for a window close event
    */
-  spawnEffect(x, y, effectType = EffectType.SPARKLES) {
+  spawnEffect(x, y, effectType) {
+    if (!effectType) effectType = EffectType.SPARKLES;
+    
     const effectConfig = Effects[effectType];
     if (!effectConfig) {
-      console.warn(`[ParticleEngine] Unknown effect type: ${effectType}`);
+      log(`[ParticleEngine] Unknown effect type: ${effectType}`);
       return;
     }
 
@@ -40,14 +43,10 @@ var ParticleEngine = class {
     global.stage.add_child(particle);
 
     // Calculate trajectory
-    const { velocityX, velocityY } = this._calculateVelocity(
-      config,
-      index,
-      config.particleCount
-    );
+    const velocity = this._calculateVelocity(config, index, config.particleCount);
 
-    const targetX = originX + velocityX;
-    const targetY = originY + velocityY;
+    const targetX = originX + velocity.vx;
+    const targetY = originY + velocity.vy;
 
     // Animation properties
     const animProps = {
@@ -57,7 +56,9 @@ var ParticleEngine = class {
       duration: config.duration,
       mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
       onComplete: () => {
-        global.stage.remove_child(particle);
+        try {
+          global.stage.remove_child(particle);
+        } catch (e) {}
         const idx = this.activeParticles.indexOf(particle);
         if (idx > -1) this.activeParticles.splice(idx, 1);
       },
@@ -98,14 +99,14 @@ var ParticleEngine = class {
     // Apply gravity if configured
     if (config.gravity) {
       return {
-        velocityX: vx,
-        velocityY: vy - config.gravity, // Negative because Y down is positive
+        vx: vx,
+        vy: vy - config.gravity,
       };
     }
 
     return {
-      velocityX: vx,
-      velocityY: vy,
+      vx: vx,
+      vy: vy,
     };
   }
 
