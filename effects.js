@@ -48,14 +48,15 @@ export const Effects = {
 
   [EffectType.EXPLOSION]: {
     name: 'Explosion',
-    particleCount: 40,
-    colors: ['#FF4500', '#FFD700', '#FF6347', '#FFA500'],
+    particleCount: 60,
+    colors: ['#FF4500', '#FFD700', '#FF6347', '#FFA500', '#FF69B4'],
     particleChar: '●',
-    duration: 900,
-    velocity: 250, // Faster burst
-    velocityVariation: 120,
+    duration: 1200,
+    velocity: 300,
+    velocityVariation: 150,
     angle: 'radial',
-    gravity: 150,
+    gravity: 180,
+    rotation: true,
   },
 
   [EffectType.RAINBOW]: {

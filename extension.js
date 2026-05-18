@@ -57,10 +57,34 @@ export default class WindowParticlesExtension extends Extension {
   }
 
   _onWindowClosed(window) {
-    const frameRect = window.get_frame_rect();
-    const centerX = frameRect.x + frameRect.width / 2;
-    const centerY = frameRect.y + frameRect.height / 2;
+    // Check if window is blacklisted
+    const wmClass = window.get_wm_class();
+    if (this._isBlacklisted(wmClass)) {
+      return;
+    }
 
-    this.particleEngine.spawnEffect(centerX, centerY, this.currentEffect);
+    const frameRect = window.get_frame_rect();
+    // Spawn from entire window area for explosion effect
+    this.particleEngine.spawnEffect(
+      frameRect.x,
+      frameRect.y,
+      frameRect.width,
+      frameRect.height,
+      this.currentEffect
+    );
+  }
+
+  _isBlacklisted(wmClass) {
+    const blacklist = this._getBlacklist();
+    return blacklist.some((pattern) => wmClass?.includes(pattern));
+  }
+
+  _getBlacklist() {
+    // Default browser blacklist
+    const settings = this.getSettings();
+    const custom = settings.get_string('browser-blacklist') || '';
+    const defaults = ['firefox', 'chromium', 'google-chrome'];
+    const customList = custom.split(',').map((s) => s.trim()).filter((s) => s);
+    return [...defaults, ...customList];
   }
 }

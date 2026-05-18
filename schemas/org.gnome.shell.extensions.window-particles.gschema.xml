@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gsettings>
+<schemalist>
   <schema id="org.gnome.shell.extensions.window-particles" path="/org/gnome/shell/extensions/window-particles/">
     <key type="s" name="effect-type">
       <default>'explosion'</default>
@@ -11,5 +11,10 @@
       <summary>Enabled applications</summary>
       <description>Comma-separated list of app names, or 'all' for all apps except browsers</description>
     </key>
+    <key type="s" name="browser-blacklist">
+      <default>''</default>
+      <summary>Additional browser blacklist</summary>
+      <description>Comma-separated list of additional app patterns to exclude (e.g., 'firefox,chromium')</description>
+    </key>
   </schema>
-</gsettings>
+</schemalist>

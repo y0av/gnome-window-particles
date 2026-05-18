@@ -61,18 +61,37 @@ var PrefsWidget = GObject.registerClass(
       effectGroup.add(effectRow);
       this.add(effectGroup);
 
-      // Browser exclusion info
+      // Browser exclusion group
       const appGroup = new Adw.PreferencesGroup({
         title: 'App Exclusions',
-        description: 'Effect is automatically disabled for browsers and tab-based apps',
+        description: 'Automatically disable effect for certain apps',
       });
 
-      const blockedAppsRow = new Adw.ActionRow({
-        title: 'Excluded Applications',
-        subtitle: 'Firefox, Chrome, Brave, and other browsers',
+      const blacklistRow = new Adw.EntryRow({
+        title: 'Excluded Apps',
+        text: 'firefox,chromium,google-chrome,brave',
       });
 
-      appGroup.add(blockedAppsRow);
+      if (this.settings) {
+        const customBlacklist = this.settings.get_string('browser-blacklist') || '';
+        if (customBlacklist) {
+          blacklistRow.set_text(customBlacklist);
+        }
+      }
+
+      blacklistRow.connect('notify::text', (row) => {
+        if (this.settings) {
+          this.settings.set_string('browser-blacklist', row.get_text());
+        }
+      });
+
+      const blacklistHelp = new Adw.ActionRow({
+        title: 'Browser Blacklist',
+        subtitle: 'Comma-separated app class names (e.g., firefox,chromium)',
+      });
+
+      appGroup.add(blacklistHelp);
+      appGroup.add(blacklistRow);
       this.add(appGroup);
 
       // Info
