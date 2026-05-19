@@ -1,4 +1,6 @@
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { ExtensionUtils } from 'resource:///org/gnome/shell/misc/extensionUtils.js';
+import Gio from 'gi://Gio';
 
 import { EffectType } from './effects.js';
 import { ParticleEngine } from './particle-engine.js';
@@ -8,6 +10,9 @@ export default class WindowParticlesExtension extends Extension {
     this.particleEngine = new ParticleEngine();
     this.currentEffect = EffectType.SPARKLES; // Default effect
     this._windowSignals = new Map();
+    
+    // Initialize settings
+    this._initSettings();
 
     this._windowCreatedId = global.display.connect(
       'window-created',
@@ -17,7 +22,50 @@ export default class WindowParticlesExtension extends Extension {
     for (const windowActor of global.get_window_actors())
       this._trackWindow(windowActor.meta_window);
     
+    
+    // Load saved effect type from settings
+    if (this._settings) {
+      const savedEffect = this._settings.get_string('effect-type');
+      if (savedEffect && Object.values(EffectType).includes(savedEffect)) {
+        this.currentEffect = savedEffect;
+      }
+    }
+    
     log('[Window Particles] Extension enabled with effect: ' + this.currentEffect);
+  }
+  
+  _initSettings() {
+    try {
+      const schemaSource = Gio.SettingsSchemaSource.new_from_directory(
+        this.path + '/schemas',
+        Gio.SettingsSchemaSource.get_default(),
+        false
+      );
+      
+      if (schemaSource) {
+        const schema = schemaSource.lookup(
+          'org.gnome.shell.extensions.window-particles',
+          false
+        );
+        
+        if (schema) {
+          this._settings = new Gio.Settings({
+            settings_schema: schema,
+          });
+          
+          // Listen for effect changes
+          this._settings.connect('changed::effect-type', () => {
+            const newEffect = this._settings.get_string('effect-type');
+            if (newEffect && Object.values(EffectType).includes(newEffect)) {
+              this.currentEffect = newEffect;
+              log('[Window Particles] Effect changed to: ' + this.currentEffect);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      log('[Window Particles] Error loading settings: ' + e);
+    }
   }
 
   disable() {
@@ -81,9 +129,13 @@ export default class WindowParticlesExtension extends Extension {
 
   _getBlacklist() {
     // Default browser blacklist
-    const settings = this.getSettings();
-    const custom = settings.get_string('browser-blacklist') || '';
-    const defaults = ['firefox', 'chromium', 'google-chrome'];
+    const defaults = ['firefox', 'chromium', 'google-chrome', 'brave'];
+    let custom = '';
+    
+    if (this._settings) {
+      custom = this._settings.get_string('browser-blacklist') || '';
+    }
+    
     const customList = custom.split(',').map((s) => s.trim()).filter((s) => s);
     return [...defaults, ...customList];
   }

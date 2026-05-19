@@ -1,6 +1,6 @@
 {
   "name": "gnome-window-particles",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GNOME Shell extension that displays satisfying particle effects when closing windows",
   "main": "extension.js",
   "scripts": {
@@ -9,5 +9,9 @@
   },
   "keywords": ["gnome", "extension", "particles", "effects", "animation"],
   "author": "Yoz",
-  "license": "GPL-3.0+"
+  "license": "GPL-3.0+",
+  "changes": {
+    "0.1.1": "Fix settings initialization and effect type persistence - properly load saved effect from GSettings and listen for changes",
+    "0.1.0": "Initial release with 5 particle effect types and preferences UI"
+  }
 }
