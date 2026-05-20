@@ -9,11 +9,13 @@ import { Effects, EffectType } from './effects.js';
 export class ParticleEngine {
   constructor() {
     this.activeParticles = [];
+    this.maxParticles = 300; // Prevent performance degradation from too many particles
   }
 
   /**
    * Create particles for a window close event
    * Particles spawn from random points across the window area
+   * Limited by maxParticles to maintain performance
    */
   spawnEffect(windowX, windowY, windowWidth, windowHeight, effectType) {
     if (!effectType) effectType = EffectType.SPARKLES;
@@ -24,11 +26,26 @@ export class ParticleEngine {
       return;
     }
 
-    for (let i = 0; i < effectConfig.particleCount; i++) {
+    // Prevent excessive particles from degrading performance
+    const particlesToSpawn = Math.min(
+      effectConfig.particleCount,
+      Math.max(1, this.maxParticles - this.activeParticles.length)
+    );
+    
+    if (particlesToSpawn === 0) {
+      log(`[ParticleEngine] Particle limit reached (${this.maxParticles}). Skipping effect.`);
+      return;
+    }
+
+    for (let i = 0; i < particlesToSpawn; i++) {
       // Random spawn point across the window surface
       const spawnX = windowX + Math.random() * windowWidth;
       const spawnY = windowY + Math.random() * windowHeight;
       this._createParticle(spawnX, spawnY, effectConfig, i);
+    }
+    
+    if (particlesToSpawn < effectConfig.particleCount) {
+      log(`[ParticleEngine] Spawned ${particlesToSpawn}/${effectConfig.particleCount} particles (limit: ${this.maxParticles})`);
     }
   }
 
