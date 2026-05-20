@@ -1,141 +1,85 @@
-const { Adw, Gtk, Gio, GObject } = imports.gi;
+import Adw from 'gi://Adw';
+import Gtk from 'gi://Gtk';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const { EffectType } = Me.imports['effects'];
+import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-var PrefsWidget = GObject.registerClass(
-  class PrefsWidget extends Adw.PreferencesPage {
-    _init() {
-      super._init({
-        title: 'Window Particle Effects',
-        icon_name: 'preferences-system-symbolic',
-      });
+import { EffectType } from './effects.js';
 
-      // Create settings if available
-      this._loadSettings();
+export default class WindowParticlesPreferences extends ExtensionPreferences {
+  fillPreferencesWindow(window) {
+    const settings = this.getSettings();
+    const page = new Adw.PreferencesPage({
+      title: 'Window Particle Effects',
+      icon_name: 'preferences-system-symbolic',
+    });
 
-      // Effect selection group
-      const effectGroup = new Adw.PreferencesGroup({
-        title: 'Particle Effect',
-        description: 'Choose which particle effect to display when closing windows',
-      });
+    const effectGroup = new Adw.PreferencesGroup({
+      title: 'Particle Effect',
+      description: 'Choose which particle effect to display when closing windows',
+    });
 
-      const effectRow = new Adw.ComboBoxRow({
-        title: 'Effect Type',
-      });
+    const effectRow = new Adw.ComboBoxRow({
+      title: 'Effect Type',
+    });
 
-      // Create effect model
-      const effectModel = new Gtk.StringList();
-      const effects = [
-        { id: EffectType.SPARKLES, label: '✨ Sparkles' },
-        { id: EffectType.CONFETTI, label: '🎉 Confetti' },
-        { id: EffectType.SMOKE, label: '💨 Smoke' },
-        { id: EffectType.EXPLOSION, label: '💥 Explosion' },
-        { id: EffectType.RAINBOW, label: '🌈 Rainbow' },
-      ];
+    const effectModel = new Gtk.StringList();
+    const effects = [
+      { id: EffectType.SPARKLES, label: 'Sparkles' },
+      { id: EffectType.CONFETTI, label: 'Confetti' },
+      { id: EffectType.SMOKE, label: 'Smoke' },
+      { id: EffectType.EXPLOSION, label: 'Explosion' },
+      { id: EffectType.RAINBOW, label: 'Rainbow' },
+    ];
 
-      effects.forEach(effect => {
-        effectModel.append(effect.label);
-      });
+    effects.forEach(effect => effectModel.append(effect.label));
+    effectRow.set_model(effectModel);
 
-      effectRow.set_model(effectModel);
+    const currentEffect = settings.get_string('effect-type');
+    const currentIndex = effects.findIndex(effect => effect.id === currentEffect);
+    effectRow.set_selected(currentIndex >= 0 ? currentIndex : 0);
 
-      // Set current effect
-      if (this.settings) {
-        const currentEffect = this.settings.get_string('effect-type');
-        const index = effects.findIndex(e => e.id === currentEffect);
-        if (index >= 0) {
-          effectRow.set_selected(index);
-        }
-      }
+    effectRow.connect('notify::selected', row => {
+      const selectedEffect = effects[row.get_selected()];
+      if (selectedEffect)
+        settings.set_string('effect-type', selectedEffect.id);
+    });
 
-      // Connect to changes
-      effectRow.connect('notify::selected-item', (row) => {
-        const selected = effects[row.get_selected()];
-        if (this.settings && selected) {
-          this.settings.set_string('effect-type', selected.id);
-        }
-      });
+    effectGroup.add(effectRow);
+    page.add(effectGroup);
 
-      effectGroup.add(effectRow);
-      this.add(effectGroup);
+    const appGroup = new Adw.PreferencesGroup({
+      title: 'App Exclusions',
+      description: 'Automatically disable effect for certain apps',
+    });
 
-      // Browser exclusion group
-      const appGroup = new Adw.PreferencesGroup({
-        title: 'App Exclusions',
-        description: 'Automatically disable effect for certain apps',
-      });
+    const blacklistHelp = new Adw.ActionRow({
+      title: 'Browser Blacklist',
+      subtitle: 'Comma-separated app class names (e.g., firefox,chromium)',
+    });
 
-      const blacklistRow = new Adw.EntryRow({
-        title: 'Excluded Apps',
-        text: 'firefox,chromium,google-chrome,brave',
-      });
+    const blacklistRow = new Adw.EntryRow({
+      title: 'Excluded Apps',
+      text: settings.get_string('browser-blacklist'),
+    });
 
-      if (this.settings) {
-        const customBlacklist = this.settings.get_string('browser-blacklist') || '';
-        if (customBlacklist) {
-          blacklistRow.set_text(customBlacklist);
-        }
-      }
+    blacklistRow.connect('notify::text', row => {
+      settings.set_string('browser-blacklist', row.get_text());
+    });
 
-      blacklistRow.connect('notify::text', (row) => {
-        if (this.settings) {
-          this.settings.set_string('browser-blacklist', row.get_text());
-        }
-      });
+    appGroup.add(blacklistHelp);
+    appGroup.add(blacklistRow);
+    page.add(appGroup);
 
-      const blacklistHelp = new Adw.ActionRow({
-        title: 'Browser Blacklist',
-        subtitle: 'Comma-separated app class names (e.g., firefox,chromium)',
-      });
+    const infoGroup = new Adw.PreferencesGroup({
+      title: 'About',
+    });
 
-      appGroup.add(blacklistHelp);
-      appGroup.add(blacklistRow);
-      this.add(appGroup);
+    infoGroup.add(new Adw.ActionRow({
+      title: 'Window Particle Effects',
+      subtitle: 'v0.2.0 - Satisfying particles when closing windows',
+    }));
+    page.add(infoGroup);
 
-      // Info
-      const infoGroup = new Adw.PreferencesGroup({
-        title: 'About',
-      });
-
-      const infoRow = new Adw.ActionRow({
-        title: 'Window Particle Effects',
-        subtitle: 'v0.2.0 - Satisfying particles when closing windows',
-      });
-
-      infoGroup.add(infoRow);
-      this.add(infoGroup);
-    }
-
-    _loadSettings() {
-      try {
-        const schemaSource = Gio.SettingsSchemaSource.new_from_directory(
-          Me.path + '/schemas',
-          Gio.SettingsSchemaSource.get_default(),
-          false
-        );
-
-        if (schemaSource) {
-          const schema = schemaSource.lookup(
-            'org.gnome.shell.extensions.window-particles',
-            false
-          );
-
-          if (schema) {
-            this.settings = new Gio.Settings({
-              settings_schema: schema,
-            });
-          }
-        }
-      } catch (e) {
-        log('[Window Particles] Could not load settings: ' + e);
-      }
-    }
+    window.add(page);
   }
-);
-
-function fillPreferencesWindow(window) {
-  let prefs = new PrefsWidget();
-  window.add(prefs);
 }
