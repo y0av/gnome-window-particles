@@ -1,5 +1,4 @@
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
-import { ExtensionUtils } from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 import Gio from 'gi://Gio';
 
 import { EffectType } from './effects.js';
