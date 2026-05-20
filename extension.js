@@ -1,8 +1,29 @@
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import Gio from 'gi://Gio';
+import Meta from 'gi://Meta';
 
 import { EffectType } from './effects.js';
 import { ParticleEngine } from './particle-engine.js';
+
+const HANDLED_WINDOW_TYPES = new Set([
+  Meta.WindowType.NORMAL,
+  Meta.WindowType.DIALOG,
+  Meta.WindowType.MODAL_DIALOG,
+  Meta.WindowType.UTILITY,
+]);
+
+const BROWSER_APP_PATTERNS = [
+  'brave',
+  'chrome',
+  'chromium',
+  'edge',
+  'firefox',
+  'google-chrome',
+  'microsoft-edge',
+  'navigator',
+  'opera',
+  'vivaldi',
+];
 
 export default class WindowParticlesExtension extends Extension {
   enable() {
@@ -92,7 +113,7 @@ export default class WindowParticlesExtension extends Extension {
   }
 
   _trackWindow(window) {
-    if (!window || this._windowSignals.has(window))
+    if (!this._shouldTrackWindow(window) || this._windowSignals.has(window))
       return;
 
     const signalId = window.connect('unmanaged', () => {
@@ -104,6 +125,9 @@ export default class WindowParticlesExtension extends Extension {
   }
 
   _onWindowClosed(window) {
+    if (!this._shouldAnimateWindow(window))
+      return;
+
     // Check if window is blacklisted
     const wmClass = window.get_wm_class();
     if (this._isBlacklisted(wmClass)) {
@@ -121,21 +145,48 @@ export default class WindowParticlesExtension extends Extension {
     );
   }
 
+  _shouldTrackWindow(window) {
+    return window && HANDLED_WINDOW_TYPES.has(window.get_window_type());
+  }
+
+  _shouldAnimateWindow(window) {
+    if (!this._shouldTrackWindow(window))
+      return false;
+
+    if (window.is_skip_taskbar())
+      return false;
+
+    const transientParent = window.get_transient_for();
+    if (transientParent)
+      return false;
+
+    if (this._isBrowserWindow(window))
+      return window.get_window_type() === Meta.WindowType.NORMAL;
+
+    return true;
+  }
+
+  _isBrowserWindow(window) {
+    const wmClass = window.get_wm_class()?.toLowerCase();
+    return BROWSER_APP_PATTERNS.some(pattern => wmClass?.includes(pattern));
+  }
+
   _isBlacklisted(wmClass) {
     const blacklist = this._getBlacklist();
-    return blacklist.some((pattern) => wmClass?.includes(pattern));
+    const normalizedClass = wmClass?.toLowerCase();
+    return blacklist.some(pattern => normalizedClass?.includes(pattern));
   }
 
   _getBlacklist() {
-    // Default browser blacklist
-    const defaults = ['firefox', 'chromium', 'google-chrome', 'brave'];
     let custom = '';
     
     if (this._settings) {
       custom = this._settings.get_string('browser-blacklist') || '';
     }
     
-    const customList = custom.split(',').map((s) => s.trim()).filter((s) => s);
-    return [...defaults, ...customList];
+    return custom
+      .split(',')
+      .map(pattern => pattern.trim().toLowerCase())
+      .filter(pattern => pattern);
   }
 }
