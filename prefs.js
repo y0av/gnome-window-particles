@@ -18,10 +18,6 @@ export default class WindowParticlesPreferences extends ExtensionPreferences {
       description: 'Choose which particle effect to display when closing windows',
     });
 
-    const effectRow = new Adw.ComboBoxRow({
-      title: 'Effect Type',
-    });
-
     const effectModel = new Gtk.StringList();
     const effects = [
       { id: EffectType.SPARKLES, label: 'Sparkles' },
@@ -32,11 +28,14 @@ export default class WindowParticlesPreferences extends ExtensionPreferences {
     ];
 
     effects.forEach(effect => effectModel.append(effect.label));
-    effectRow.set_model(effectModel);
 
     const currentEffect = settings.get_string('effect-type');
     const currentIndex = effects.findIndex(effect => effect.id === currentEffect);
-    effectRow.set_selected(currentIndex >= 0 ? currentIndex : 0);
+    const effectRow = new Adw.ComboRow({
+      title: 'Effect Type',
+      model: effectModel,
+      selected: currentIndex >= 0 ? currentIndex : 0,
+    });
 
     effectRow.connect('notify::selected', row => {
       const selectedEffect = effects[row.get_selected()];
