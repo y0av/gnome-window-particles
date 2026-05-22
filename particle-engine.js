@@ -53,9 +53,13 @@ export class ParticleEngine {
    * Create a single particle and animate it
    */
   _createParticle(originX, originY, config, index) {
+    // Set initial size - effects can define a size multiplier
+    const sizeMultiplier = config.sizeMultiplier || 1.0;
+    const fontSize = Math.floor(14 * sizeMultiplier);
+    
     const particle = new St.Label({
       text: config.particleChar,
-      style: `color: ${config.colors[index % config.colors.length]};`,
+      style: `color: ${config.colors[index % config.colors.length]}; font-size: ${fontSize}px;`,
     });
 
     particle.set_position(originX, originY);
@@ -87,6 +91,12 @@ export class ParticleEngine {
     // Optional: Add rotation
     if (config.rotation) {
       animProps.rotation_angle_z = 360 + Math.random() * 360;
+    }
+
+    // Optional: Add scaling (grows or shrinks during animation)
+    if (config.scale) {
+      animProps.scale_x = config.scale;
+      animProps.scale_y = config.scale;
     }
 
     particle.ease(animProps);

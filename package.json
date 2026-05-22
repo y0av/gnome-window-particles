@@ -1,6 +1,6 @@
 {
   "name": "gnome-window-particles",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "GNOME Shell extension that displays satisfying particle effects when closing windows",
   "main": "extension.js",
   "scripts": {
@@ -11,6 +11,7 @@
   "author": "Yoz",
   "license": "GPL-3.0+",
   "changes": {
+    "0.1.3": "Add particle scaling system - particles now grow/shrink during animation, enabling smoke effects to expand and explosions to shrink; add per-effect size multipliers for visual variety",
     "0.1.2": "Add global particle limit (max 300) to prevent performance degradation when multiple windows close rapidly",
     "0.1.1": "Fix settings initialization and effect type persistence - properly load saved effect from GSettings and listen for changes",
     "0.1.0": "Initial release with 5 particle effect types and preferences UI"

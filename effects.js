@@ -18,6 +18,7 @@ export const Effects = {
     velocity: 150,
     velocityVariation: 100,
     angle: 'radial', // 360 degree burst
+    sizeMultiplier: 1.0,
   },
 
   [EffectType.CONFETTI]: {
@@ -31,6 +32,7 @@ export const Effects = {
     angle: 'radial',
     rotation: true, // Particles rotate
     gravity: 200, // Falls down slightly
+    sizeMultiplier: 1.2,
   },
 
   [EffectType.SMOKE]: {
@@ -43,7 +45,8 @@ export const Effects = {
     velocityVariation: 40,
     angle: 'upward', // Move upward
     opacity: 0.6,
-    growSize: true, // Particles grow as they dissipate
+    sizeMultiplier: 1.8, // Smoke particles are bigger
+    scale: 1.5, // Grow as they dissipate
   },
 
   [EffectType.EXPLOSION]: {
@@ -57,6 +60,8 @@ export const Effects = {
     angle: 'radial',
     gravity: 180,
     rotation: true,
+    sizeMultiplier: 1.4,
+    scale: 0.3, // Shrink as they fly away
   },
 
   [EffectType.RAINBOW]: {
@@ -69,6 +74,7 @@ export const Effects = {
     velocityVariation: 90,
     angle: 'radial',
     rotation: true,
+    sizeMultiplier: 1.3,
   },
 };
 
