@@ -106,6 +106,12 @@ export class ParticleEngine {
   /**
    * Calculate velocity based on effect angle and particle index
    * Particles burst outward from their spawn point
+   * 
+   * Note on gravity: Gravity is applied over the animation duration.
+   * With duration D and gravity G, total vertical displacement includes:
+   * - Initial velocity component: vy * D / 1000
+   * - Gravity acceleration: -0.5 * G * (D / 1000)^2
+   * This creates realistic parabolic arcs for explosion/confetti effects.
    */
   _calculateVelocity(config, index, totalParticles) {
     let angle, speed;
@@ -127,11 +133,17 @@ export class ParticleEngine {
     const vx = Math.cos(angle) * speed;
     const vy = Math.sin(angle) * speed;
 
-    // Apply gravity if configured
+    // Gravity accelerates particles downward during animation
+    // The velocity here is the INITIAL velocity; gravity modifies the path shape
+    // Real physics: y_final = y_0 + vy*t - 0.5*g*t^2
+    // We use Clutter's easing, so we approximate by adjusting final Y position
     if (config.gravity) {
+      const durationSeconds = config.duration / 1000;
+      const gravityEffect = 0.5 * config.gravity * durationSeconds * durationSeconds;
+      
       return {
         vx: vx,
-        vy: vy - config.gravity,
+        vy: vy + gravityEffect, // Add gravity displacement to Y velocity
       };
     }
 

@@ -18,6 +18,7 @@ export const Effects = {
     velocity: 150,
     velocityVariation: 100,
     angle: 'radial', // 360 degree burst
+    gravity: 0, // Sparkles float gracefully, no gravity
     sizeMultiplier: 1.0,
   },
 
@@ -27,11 +28,11 @@ export const Effects = {
     colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'],
     particleChar: '■', // Square shape
     duration: 1200,
-    velocity: 120,
-    velocityVariation: 80,
+    velocity: 130,  // Slightly increased from 120
+    velocityVariation: 85,  // Slightly increased from 80
     angle: 'radial',
     rotation: true, // Particles rotate
-    gravity: 200, // Falls down slightly
+    gravity: 220, // Increased from 200 for more natural falling
     sizeMultiplier: 1.2,
   },
 
@@ -47,6 +48,7 @@ export const Effects = {
     opacity: 0.6,
     sizeMultiplier: 1.8, // Smoke particles are bigger
     scale: 1.5, // Grow as they dissipate
+    gravity: 0, // No gravity for smoke - naturally floats up
   },
 
   [EffectType.EXPLOSION]: {
@@ -55,10 +57,10 @@ export const Effects = {
     colors: ['#FF4500', '#FFD700', '#FF6347', '#FFA500', '#FF69B4'],
     particleChar: '●',
     duration: 1200,
-    velocity: 300,
-    velocityVariation: 150,
+    velocity: 320,  // Increased from 300 for snappier burst
+    velocityVariation: 160,  // Increased from 150 for more spread
     angle: 'radial',
-    gravity: 180,
+    gravity: 200,
     rotation: true,
     sizeMultiplier: 1.4,
     scale: 0.3, // Shrink as they fly away
@@ -70,10 +72,11 @@ export const Effects = {
     colors: ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3'],
     particleChar: '★',
     duration: 1100,
-    velocity: 140,
-    velocityVariation: 90,
+    velocity: 150,  // Slightly increased from 140 for snappier effect
+    velocityVariation: 95,  // Slightly increased from 90
     angle: 'radial',
     rotation: true,
+    gravity: 150, // Added gravity for more organic motion
     sizeMultiplier: 1.3,
   },
 };
