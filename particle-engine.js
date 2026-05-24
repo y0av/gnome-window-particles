@@ -10,12 +10,16 @@ export class ParticleEngine {
   constructor() {
     this.activeParticles = [];
     this.maxParticles = 300; // Prevent performance degradation from too many particles
+    this.baseMaxParticles = 300; // Store the base limit for adaptive scaling
+    this.lastCleanupTime = 0;
+    this.cleanupInterval = 5000; // Cleanup every 5 seconds
   }
 
   /**
    * Create particles for a window close event
    * Particles spawn from random points across the window area
    * Limited by maxParticles to maintain performance
+   * Adaptive throttling reduces particle count under heavy load
    */
   spawnEffect(windowX, windowY, windowWidth, windowHeight, effectType) {
     if (!effectType) effectType = EffectType.SPARKLES;
@@ -26,14 +30,20 @@ export class ParticleEngine {
       return;
     }
 
+    // Periodic cleanup to prevent memory leaks from stuck particles
+    this._performPeriodicCleanup();
+    
+    // Adaptive particle throttling: reduce particles under heavy load
+    const adaptiveLimit = this._calculateAdaptiveLimit();
+
     // Prevent excessive particles from degrading performance
     const particlesToSpawn = Math.min(
       effectConfig.particleCount,
-      Math.max(1, this.maxParticles - this.activeParticles.length)
+      Math.max(1, adaptiveLimit - this.activeParticles.length)
     );
     
     if (particlesToSpawn === 0) {
-      log(`[ParticleEngine] Particle limit reached (${this.maxParticles}). Skipping effect.`);
+      log(`[ParticleEngine] Particle limit reached (adaptive: ${adaptiveLimit}, active: ${this.activeParticles.length}). Skipping effect.`);
       return;
     }
 
@@ -45,7 +55,58 @@ export class ParticleEngine {
     }
     
     if (particlesToSpawn < effectConfig.particleCount) {
-      log(`[ParticleEngine] Spawned ${particlesToSpawn}/${effectConfig.particleCount} particles (limit: ${this.maxParticles})`);
+      log(`[ParticleEngine] Spawned ${particlesToSpawn}/${effectConfig.particleCount} particles (adaptive limit: ${adaptiveLimit})`);
+    }
+  }
+
+  /**
+   * Calculate adaptive particle limit based on active particle load
+   * Under heavy load, reduce new particles to maintain frame rate
+   * Load levels:
+   * - Light (0-100 particles): 100% of base limit (300)
+   * - Medium (100-200): 80% of base limit (240)
+   * - Heavy (200-300): 60% of base limit (180)
+   */
+  _calculateAdaptiveLimit() {
+    const activeCount = this.activeParticles.length;
+    
+    if (activeCount < 100) {
+      // Light load: maintain full capacity
+      return this.baseMaxParticles;
+    } else if (activeCount < 200) {
+      // Medium load: reduce to 80%
+      return Math.floor(this.baseMaxParticles * 0.8);
+    } else {
+      // Heavy load: reduce to 60%
+      return Math.floor(this.baseMaxParticles * 0.6);
+    }
+  }
+
+  /**
+   * Periodically clean up orphaned particles
+   * Prevents memory leaks from particles that failed to animate cleanly
+   */
+  _performPeriodicCleanup() {
+    const now = Date.now();
+    if (now - this.lastCleanupTime < this.cleanupInterval) {
+      return; // Skip cleanup if interval hasn't passed
+    }
+
+    this.lastCleanupTime = now;
+    const initialCount = this.activeParticles.length;
+    
+    // Remove any particles that are no longer in the stage
+    this.activeParticles = this.activeParticles.filter((particle) => {
+      try {
+        return particle.get_parent() !== null;
+      } catch (e) {
+        return false;
+      }
+    });
+
+    const cleanedCount = initialCount - this.activeParticles.length;
+    if (cleanedCount > 0) {
+      log(`[ParticleEngine] Cleaned up ${cleanedCount} orphaned particles (${this.activeParticles.length} remaining)`);
     }
   }
 
